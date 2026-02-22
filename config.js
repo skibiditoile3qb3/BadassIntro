@@ -3,14 +3,14 @@
 
 const SITE_CONFIG = {
     // Personal info
-    title: "Great THUG",
-    citation: "I don't seek power - I am power !",
+    title: "Skibiditoile3qb3",
+    citation: "Be yourself; everyone else is already taken.",
 
     // Main colors (hex format)
     colors: {
-        primary: "#e23535",
-        secondary: "#ff4d4d",
-        accent: "#ff6b6b",
+        primary: "#3574e2",
+        secondary: "#4d8aff",
+        accent: "#6ba3ff",
         white: "#ffffff",
         black: "#000000"
     },
