@@ -323,13 +323,14 @@
         <h1 id="main-title"></h1>
         <p id="citation-text"></p>
         <div class="socials">
-            <a href="https://github.com/skibiditoile3qb3" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+            <!-- hrefs are set by config.js via applyConfig() -->
+            <a href="#" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
                 <i class="fab fa-github"></i>
             </a>
-            <a href="https://discord.gg/BhQk4q3JGJ" target="_blank" rel="noopener noreferrer" aria-label="Discord">
+            <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Discord">
                 <i class="fab fa-discord"></i>
             </a>
-            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=jokesterman4@gmail.com" target="_blank" rel="noopener noreferrer" aria-label="Email">
+            <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Email">
                 <i class="fab fa-telegram"></i>
             </a>
         </div>
@@ -339,57 +340,62 @@
         <i class="fas fa-volume-mute"></i>
     </button>
 
+    <!-- config.js must load first so SITE_CONFIG is available -->
     <script src="config.js"></script>
     <script src="assets/animations.js"></script>
 
     <script>
-        const audio = document.getElementById("audio");
-        const toggleBtn = document.getElementById("sound-toggle");
-        const icon = toggleBtn.querySelector("i");
-        const video = document.getElementById("background");
-        const particlesContainer = document.getElementById("particles");
-        const titleElement = document.getElementById("main-title");
-        const citationElement = document.getElementById("citation-text");
+        const audio      = document.getElementById("audio");
+        const toggleBtn  = document.getElementById("sound-toggle");
+        const icon       = toggleBtn.querySelector("i");
+        const video      = document.getElementById("background");
+        const particlesEl = document.getElementById("particles");
+        const titleEl    = document.getElementById("main-title");
+        const citationEl = document.getElementById("citation-text");
 
-        const titleText = "Great THUG";
-        const citationText = "I don't seek power - I am power !";
+        // Pull values from SITE_CONFIG (safe fallbacks if config.js missing)
+        const cfg          = window.SITE_CONFIG || {};
+        const anim         = cfg.animations    || {};
+        const effects      = cfg.effects       || {};
+        const titleText    = cfg.title         || "Great THUG";
+        const citationText = cfg.citation      || "I don't seek power - I am power !";
 
         let isPlaying = false;
 
-        // Particle system
+        // --- Particles ---
         function createParticle() {
             const p = document.createElement('div');
             p.className = 'particle';
             p.style.left = Math.random() * 100 + '%';
             p.style.animationDuration = (Math.random() * 3 + 3) + 's';
-            p.style.animationDelay = Math.random() * 2 + 's';
-            particlesContainer.appendChild(p);
+            p.style.animationDelay    = Math.random() * 2 + 's';
+            particlesEl.appendChild(p);
             setTimeout(() => p.remove(), 6000);
         }
 
-        function createRandomPaintDrop() {
+        function createPaintDrop() {
             const splash = document.querySelector('.paint-splash');
             if (!splash) return;
-            const drop = document.createElement('div');
+            const drop  = document.createElement('div');
             drop.className = 'paint-drop';
             const angle = Math.random() * 360;
-            const dist = 60 + Math.random() * 40;
-            drop.style.position = 'absolute';
-            drop.style.left = (100 + Math.cos(angle * Math.PI / 180) * dist) + 'px';
-            drop.style.top  = (100 + Math.sin(angle * Math.PI / 180) * dist) + 'px';
-            const size = 15 + Math.random() * 25;
-            drop.style.width  = size + 'px';
-            drop.style.height = (size * 0.8) + 'px';
+            const dist  = 60 + Math.random() * 40;
+            const size  = 15 + Math.random() * 25;
+            drop.style.position          = 'absolute';
+            drop.style.left              = (100 + Math.cos(angle * Math.PI / 180) * dist) + 'px';
+            drop.style.top               = (100 + Math.sin(angle * Math.PI / 180) * dist) + 'px';
+            drop.style.width             = size + 'px';
+            drop.style.height            = (size * 0.8) + 'px';
             drop.style.animationDelay    = Math.random() * 2 + 's';
             drop.style.animationDuration = (2 + Math.random() * 2) + 's';
             splash.appendChild(drop);
             setTimeout(() => drop.remove(), 4000);
         }
 
-        setInterval(createParticle, 300);
-        setInterval(createRandomPaintDrop, 800);
+        if (effects.particles  !== false) setInterval(createParticle,  anim.particleInterval  || 300);
+        if (effects.paintDrops !== false) setInterval(createPaintDrop, anim.paintDropInterval  || 800);
 
-        // Typewriter
+        // --- Typewriter ---
         function typeWriter(el, text, speed, callback) {
             let i = 0;
             el.textContent = '';
@@ -402,23 +408,26 @@
             type();
         }
 
-        // Tab title animation
-        const titleFrames = ["G","Gr","Gre","Grea","Great","Great ","Great T","Great TH","Great THU","Great THUG","Great THUG","Great THUG"];
-        let tIdx = 0;
+        // --- Tab title animation (builds the title letter by letter) ---
+        const tabFrames = Array.from(titleText).map((_, i) => titleText.slice(0, i + 1));
+        tabFrames.push(titleText, titleText); // hold at end
+        let fIdx = 0;
         function animateTabTitle() {
-            document.title = titleFrames[tIdx++ % titleFrames.length];
-            setTimeout(animateTabTitle, 200);
+            document.title = tabFrames[fIdx++ % tabFrames.length];
+            setTimeout(animateTabTitle, anim.tabTitleSpeed || 200);
         }
 
-        // Click ripple
-        document.addEventListener('click', e => {
-            const r = document.createElement('div');
-            r.style.cssText = `position:fixed;left:${e.clientX-10}px;top:${e.clientY-10}px;width:20px;height:20px;border-radius:50%;background:rgba(226,53,53,0.6);pointer-events:none;z-index:9999;animation:ripple 0.6s ease-out;`;
-            document.body.appendChild(r);
-            setTimeout(() => r.remove(), 600);
-        });
+        // --- Click ripple ---
+        if (effects.clickRipple !== false) {
+            document.addEventListener('click', e => {
+                const r = document.createElement('div');
+                r.style.cssText = `position:fixed;left:${e.clientX-10}px;top:${e.clientY-10}px;width:20px;height:20px;border-radius:50%;background:rgba(226,53,53,0.6);pointer-events:none;z-index:9999;animation:ripple 0.6s ease-out;`;
+                document.body.appendChild(r);
+                setTimeout(() => r.remove(), 600);
+            });
+        }
 
-        // Sound toggle
+        // --- Sound toggle button ---
         toggleBtn.addEventListener("click", () => {
             isPlaying ? audio.pause() : audio.play().catch(() => {});
             isPlaying = !isPlaying;
@@ -427,16 +436,18 @@
             setTimeout(() => toggleBtn.classList.remove('bounce'), 600);
         });
 
-        // Auto-start on page load
+        // --- Auto-start everything on page load ---
         window.addEventListener('load', () => {
-            audio.volume = 0.05;
+            // applyConfig() already ran from config.js (DOMContentLoaded)
+            // It set: audio volume, video attrs, social link hrefs, page title
             video.play().catch(() => {});
-            // Don't auto-play audio (browser policy) — user can click sound btn
+
             animateTabTitle();
-            typeWriter(titleElement, titleText, 150, () => {
-                setTimeout(() => typeWriter(citationElement, citationText, 80), 200);
+            typeWriter(titleEl, titleText, anim.titleTypingSpeed || 150, () => {
+                setTimeout(() => typeWriter(citationEl, citationText, anim.citationTypingSpeed || 80), 200);
             });
-            if (typeof initAdvancedAnimations === 'function') initAdvancedAnimations();
+
+            if (typeof initAdvancedAnimations  === 'function') initAdvancedAnimations();
             if (typeof startAdvancedAnimations === 'function') setTimeout(startAdvancedAnimations, 1000);
         });
     </script>
